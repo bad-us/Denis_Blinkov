@@ -5,9 +5,11 @@ import time
 a = None
 b = None
 
+
 def quit_programm():
     print('До свидания')
     return
+
 
 def first_key():
     fk = input(f'Введите пункт меню что хотим делать\n '
@@ -25,11 +27,22 @@ def first_key():
         first_key()
 
 
+def login_inf():
+    login = input('Введите логин для устройства: ')
+    return login
+
+
+def password_inf():
+    password = input('Введите пароль для устройства: ')
+    return password
+
+
 def write_file():
     cmd = "C:\DKCL\dkcl64.exe -t \"LIST\" -r=c:\DKCL\\keys.txt"  # Здесь вместо date Ваша команда для git
     returned_output = subprocess.check_output(cmd)  # returned_output содержит вывод в виде строки байтов
     print('Сохранение в файл:', returned_output.decode("utf-8"))  # Преобразуем байты в строку
     first_key()
+
 
 def write_new_file(fk):
     if fk == '2':  # Создаем файл в зависимости от ключа
@@ -40,9 +53,12 @@ def write_new_file(fk):
     final.close()
     return fk
 
+
 def read_file(fk):
     word = "-->"
     fk = write_new_file(fk)
+    l = login_inf()
+    p = password_inf()
     with open("c:\DKCL\\keys.txt", encoding="utf8") as file:  # Разбираем файл с ключами построчно
         for line in file:
             if word in line:
@@ -56,15 +72,15 @@ def read_file(fk):
                 f = f.replace("\n", '')
                 f = f.replace(" ", ',')
                 if fk == '2':
-                    b = fqcn_address(f)
+                    b = fqcn_address(f, l, p)
                 else:
-                    b = jacarta_address(f)
+                    b = jacarta_address(f, l, p)
                 write_final_file(a, b, fk)
     return
 
 
-def fqcn_address(f):
-    cmd = f"C:\DKCL\dkcl64.exe -t \"USE,{f}12345678\""  # 12345678 пароль пользователя
+def fqcn_address(f, l, p):
+    cmd = f"C:\DKCL\dkcl64.exe -t \"USE,{f}{l}\\{p}\""  # 12345678 пароль пользователя
     subprocess.run(cmd)
     time.sleep(5)
     # Забираем UID ключа полный
@@ -73,6 +89,7 @@ def fqcn_address(f):
     b = returned_output.decode("utf-8")
     b = b.split(' ')
     b = b[14]
+    b = b.replace('0\\','')
     b = b.replace('\r\nOK.\r\nTotal:', '')  # Вытаскиваем ид ключа
     # subprocess.check_output(f"C:\DKCL\dkcl64.exe -t \"STOP USING,{f}\"")
     subprocess.run(f"C:\DKCL\dkcl64.exe -t \"STOP USING,{f}\"")
@@ -80,8 +97,8 @@ def fqcn_address(f):
     return b
 
 
-def jacarta_address(f):
-    cmd = f"C:\DKCL\dkcl64.exe -t \"USE,{f}12345678\""  # 12345678 пароль пользователя
+def jacarta_address(f, l, p):
+    cmd = f"C:\DKCL\dkcl64.exe -t \"USE,{f}{l}\\{p}\""  # 12345678 пароль пользователя
     # subprocess.check_output(cmd)
     subprocess.run(cmd)
     time.sleep(5)
