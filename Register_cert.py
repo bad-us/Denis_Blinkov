@@ -1,10 +1,22 @@
 import subprocess
 import os
 import io
-import re
 import pywinauto
+import time
 
-def check_address_file(l, p):
+def user_read():  # Чтение папки на наличие файлов с правилами для ключей
+    global l
+    global p
+    global pin
+    if os.path.exists(f'c:\DKCL\\{l}.txt'):
+        check_address_file()
+    else:
+        l = input('Введите имя пользователя: ')
+        p = input('Введите пароль для устройства: ')
+        pin = input('Введите пин для ключей: ')
+        user_read()
+
+def check_address_file():
     with open(f'c:\DKCL\\keys.txt', encoding='Utf8') as key:
         kf = key.read()
 
@@ -12,22 +24,19 @@ def check_address_file(l, p):
         for needle in (line.strip() for line in address):
             if needle not in kf:
                 print(needle, 'Адрес не найден. Поправьте файл пользователя')
-    programName = "notepad.exe"
-    fileName = f"c:\DKCL\\{l}.txt"
-    subprocess.check_output([programName, fileName])
-    read_file(l, p)
+                programName = "notepad.exe"
+                fileName = f"c:\DKCL\\{l}.txt"
+                subprocess.check_output([programName, fileName])
+    read_file()
 
+def read_file():  # Чтение построчно файла
+    with open(f"c:\DKCL\\{l}.txt", 'r', encoding="utf8") as file:  # Разбираем файл с ключами построчно
+        for line in file:
+            word = line.strip()
+            f = open_file_address(word)
+            start_dk(f, word)
 
-def user_read(l, p):  # Чтение папки на наличие файлов с правилами для ключей
-    if os.path.exists(f'c:\DKCL\\{l}.txt'):
-        check_address_file(l, p)
-    else:
-        l = input('Введите имя пользователя: ')
-        p = input('Введите пароль для устройства: ')
-        user_read(l, p)
-
-
-def open_file_address(l, p, word):  # Открытие файла заполненого адресами ключей
+def open_file_address(word):  # Открытие файла заполненого адресами ключей
     with io.open(f"c:\DKCL\\keys.txt", encoding="utf8") as address:
         for line in address:
             if word in line:
@@ -38,28 +47,9 @@ def open_file_address(l, p, word):  # Открытие файла заполне
                 f = f.replace(" ", '')
     return f
 
-
-def del_str(l, p, word):  # Удаление адреса из файла
-    with open(f"c:\DKCL\\{l}.txt", 'r+', encoding="utf8") as f:
-        d = f.readlines()
-        f.seek(0)
-        for i in d:
-            if word not in i:
-                f.write(i)
-        f.truncate()
-    read_file(l, p)
-
-
-def read_file(l, p):  # Чтение построчно файла
-    with open(f"c:\DKCL\\{l}.txt", 'r', encoding="utf8") as file:  # Разбираем файл с ключами построчно
-        for line in file:
-            word = line.strip()
-            f = open_file_address(l, p, word)
-            start_dk(f, l, p, word)
-
-
-def start_dk(f, l, p, word):  # Запуск клиента
-    subprocess.Popen(f"C:\DKCL\dkcl64.exe -t \"USE,{f}\"")
+def start_dk(f, word):  # Запуск клиента
+    subprocess.run(f"C:\DKCL\dkcl64.exe -t \"USE,{f}\"")
+    time.sleep(5)
     # Проверка на сохраненный пароль
     cmd = "C:\DKCL\dkcl64.exe -t \"LIST\" -r=c:\DKCL\\keys1.txt"
     subprocess.run(cmd)
@@ -67,33 +57,85 @@ def start_dk(f, l, p, word):  # Запуск клиента
     b_read = b.readlines()
     for line in b_read:
         if f in line:
+            # subprocess.run(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
             print(line)
-            if line.count('In-use') > 0:
-                print(f"Порт занят. Данный адрес будет удален {word}\n, а я пока продолжу работу")
-                del_str(l, p, word)
-                # read_file(l, p)
+            if line.count('In-use by you') > 0:
+                cripto_pro()
             else:
-                print("No")
+                if line.count('In-use by:') > 0:
+                    print(f"Порт занят. Данный адрес будет удален {word}, а я пока продолжу работу")
+                    del_str(word)
+                else:
+                    client_dkcl_input()
+
+def del_str(word):  # Удаление адреса из файла
+    with open(f"c:\DKCL\\{l}.txt", 'r+', encoding="utf8") as f:
+        d = f.readlines()
+        f.seek(0)
+        for i in d:
+            if word not in i:
+                f.write(i)
+        f.truncate()
+    subprocess.run(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
+    read_file()
+
+def client_dkcl_input():
     # Вернуть Временно
-    # app = pywinauto.Application().connect(title_re="DistKontrolUSB Client", class_name = "wxWindowNR")
-    # app.Введитепарольдляиспользованияэтогоустройства.Edit.type_keys(f'{l}')
-    # app.Введитепарольдляиспользованияэтогоустройства.Edit2.type_keys(f'{p}')
-    # app.DistKontrolUSB.print_control_identifiers()
-    # app.Введитепарольдляиспользованияэтогоустройства.print_control_identifiers()
+    app = pywinauto.Application().connect(title_re="DistKontrolUSB Client", class_name = "wxWindowNR")
+    app.Введитепарольдляиспользованияэтогоустройства.Edit.type_keys(f'{l}')
+    app.Введитепарольдляиспользованияэтогоустройства.Edit2.type_keys(f'{p}')
+    # app.DistKontrolUSB.print_control_identifiers() # Вывод параметров формы
     # app.Введитепарольдляиспользованияэтогоустройства.ЗапомнитьCheckBox.Click()
-    # app.Введитепарольдляиспользованияэтогоустройства.OKButton.Click()
-    # # app.Введитепарольдляиспользованияэтогоустройства.Запомнить.Click()
-    # returned_output = subprocess.check_output(f'C:\Program Files\Crypto Pro\CSP\csptest.exe -keyset -enum_cont -verifycontext -fqcn -machinekeys')
-    # c = returned_output.decode("utf-8")
-    # print(c)
-    # subprocess.Popen(f"C:\DKCL\dkcl64.exe -t \"STOP USING,{f}\"")
-    # pg.typewrite(["enter"])
+    app.Введитепарольдляиспользованияэтогоустройства.OKButton.Click()
+    time.sleep(2)
+    cripto_pro()
+    return
+
+def cripto_pro(): # запуск крипто про и ввод пароля
+    cmd = "C:\Program Files\Crypto Pro\CSP\csptest.exe -keyset -enum_cont -verifycontext -fqcn -machinekeys"
+    returned_output = subprocess.check_output(cmd)
+    b = returned_output.decode("utf-8")
+    print(b)
+    b = b.split(' ')
+    b = b[14]
+    b = b.replace('0\\', '')
+    b = b.replace('\r\nOK.\r\nTotal:', '')  # Вытаскиваем ид ключа
+    # csptest.exe - property - cinstall - cont
+    subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest.exe -property -cinstall -cont {b}')
+    time.sleep(1)
+    # cmd = (f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -check -cont {b}')
+    # returned_output = subprocess.check_output(cmd)
+    # x = returned_output.decode("utf-8")
+    # print(x.find('An AT_KEYEXCHANGE key is available'))
+    # if x.find('An AT_KEYEXCHANGE key is available') < 0:
+    #     time.sleep(10)
+    #     app = pywinauto.Application().connect(title_re="Аутентификация - КриптоПро CSP", class_name="#32770")
+    #     app.АутентификацияКриптоПроCSP.print_control_identifiers()
+    #     app.АутентификацияКриптоПроCSP.Edit.type_keys(f'{pin}')
+    #     app.АутентификацияКриптоПроCSP.СохранитьпарольвсистемеCheckBox.Click()
+    #     app.АутентификацияКриптоПроCSP.OKButton.Click()
+    #     subprocess.Popen(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
+    #     time.sleep(2)
+
+    # subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -delsaved -container {b}')
+    subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -delsaved -container {b}')
+    time.sleep(1)
+    # subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -check -cont {b}')
+    subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -check -cont {b}')
+    time.sleep(15)
+    app = pywinauto.Application().connect(title_re="Аутентификация - КриптоПро CSP", class_name="#32770")
+    # app.АутентификацияКриптоПроCSP.print_control_identifiers()
+    app.АутентификацияКриптоПроCSP.Edit.type_keys(f'{pin}')
+    app.АутентификацияКриптоПроCSP.СохранитьпарольвсистемеCheckBox.Click()
+    app.АутентификацияКриптоПроCSP.OKButton.Click()
+    subprocess.run(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
+    return
 
 
 if __name__ == '__main__':
     l = input('Введите логин для устройства: ')
     p = input('Введите пароль для устройства: ')
+    pin = input('Введите пин для ключей: ')
     app = pywinauto.Application().Start(r'C:\DKCL\dkcl64.exe')
-    # subprocess.Popen(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"") # Вернуть Временно
-    user_read(l, p)
-
+    subprocess.Popen(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
+    user_read()
