@@ -86,7 +86,7 @@ def client_dkcl_input():
     app.Введитепарольдляиспользованияэтогоустройства.Edit2.type_keys(f'{p}')
     # app.DistKontrolUSB.print_control_identifiers() # Вывод параметров формы
     # app.Введитепарольдляиспользованияэтогоустройства.ЗапомнитьCheckBox.Click()
-    app.Введитепарольдляиспользованияэтогоустройства.OKButton.Click()
+    app.Введитепарольдляиспользованияэтогоустройства.OKButton.click()
     time.sleep(2)
     cripto_pro()
     return
@@ -95,47 +95,71 @@ def cripto_pro(): # запуск крипто про и ввод пароля
     cmd = "C:\Program Files\Crypto Pro\CSP\csptest.exe -keyset -enum_cont -verifycontext -fqcn -machinekeys"
     returned_output = subprocess.check_output(cmd)
     b = returned_output.decode("utf-8")
-    print(b)
-    b = b.split(' ')
-    b = b[14]
-    b = b.replace('0\\', '')
-    b = b.replace('\r\nOK.\r\nTotal:', '')  # Вытаскиваем ид ключа
-    # csptest.exe - property - cinstall - cont
-    subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest.exe -property -cinstall -cont {b}')
-    time.sleep(1)
-    # cmd = (f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -check -cont {b}')
-    # returned_output = subprocess.check_output(cmd)
-    # x = returned_output.decode("utf-8")
-    # print(x.find('An AT_KEYEXCHANGE key is available'))
-    # if x.find('An AT_KEYEXCHANGE key is available') < 0:
-    #     time.sleep(10)
-    #     app = pywinauto.Application().connect(title_re="Аутентификация - КриптоПро CSP", class_name="#32770")
-    #     app.АутентификацияКриптоПроCSP.print_control_identifiers()
-    #     app.АутентификацияКриптоПроCSP.Edit.type_keys(f'{pin}')
-    #     app.АутентификацияКриптоПроCSP.СохранитьпарольвсистемеCheckBox.Click()
-    #     app.АутентификацияКриптоПроCSP.OKButton.Click()
-    #     subprocess.Popen(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
-    #     time.sleep(2)
+    start = -1
+    count = 0
 
-    # subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -delsaved -container {b}')
-    subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -delsaved -container {b}')
-    time.sleep(1)
-    # subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -check -cont {b}')
-    subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -check -cont {b}')
-    time.sleep(15)
-    app = pywinauto.Application().connect(title_re="Аутентификация - КриптоПро CSP", class_name="#32770")
-    # app.АутентификацияКриптоПроCSP.print_control_identifiers()
-    app.АутентификацияКриптоПроCSP.Edit.type_keys(f'{pin}')
-    app.АутентификацияКриптоПроCSP.СохранитьпарольвсистемеCheckBox.Click()
-    app.АутентификацияКриптоПроCSP.OKButton.Click()
+    while True:
+        start = b.find("Aladdin R.D. JaCarta", start + 1)
+        if start == -1:
+            break
+        count += 1
+
+    b = b.split('Aladdin R.D. JaCarta 0\\')
+
+    i = 1
+    d = []
+    while i <= count:
+        c = b[i]
+        c = c.split('\n')
+        d.append(c[0])
+        print(d)
+        i += 1
+
+    for i in d:
+        print(i)
+        i = i.replace('\r', '')
+        p = subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest.exe -property -cinstall -cont {i}')
+        time.sleep(1)
+        p1 = subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -delsaved -container {i}')
+        time.sleep(1)
+        subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -check -cont {i}')
+        time.sleep(20)
+        app = pywinauto.Application().connect(title_re="Аутентификация - КриптоПро CSP", class_name="#32770")
+        # app.АутентификацияКриптоПроCSP.print_control_identifiers()
+        app.АутентификацияКриптоПроCSP.Edit.type_keys(f'{pin}')
+        app.АутентификацияКриптоПроCSP.СохранитьпарольвсистемеCheckBox.click()
+        app.АутентификацияКриптоПроCSP.OKButton.click()
     subprocess.run(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
     return
+
+    # cmd = "C:\Program Files\Crypto Pro\CSP\csptest.exe -keyset -enum_cont -verifycontext -fqcn -machinekeys"
+    # returned_output = subprocess.check_output(cmd)
+    # b = returned_output.decode("utf-8")
+    # print(b)
+    # b = b.split(' ')
+    # b = b[14]
+    # b = b.replace('0\\', '')
+    # b = b.replace('\r\nOK.\r\nTotal:', '')  # Вытаскиваем ид ключа
+    # # csptest.exe - property - cinstall - cont
+    # subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest.exe -property -cinstall -cont {b}')
+    # time.sleep(1)
+    # subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -delsaved -container {b}')
+    # time.sleep(1)
+    # subprocess.Popen(f'C:\Program Files\Crypto Pro\CSP\csptest -passwd -check -cont {b}')
+    # time.sleep(15)
+    # app = pywinauto.Application().connect(title_re="Аутентификация - КриптоПро CSP", class_name="#32770")
+    # # app.АутентификацияКриптоПроCSP.print_control_identifiers()
+    # app.АутентификацияКриптоПроCSP.Edit.type_keys(f'{pin}')
+    # app.АутентификацияКриптоПроCSP.СохранитьпарольвсистемеCheckBox.click()
+    # app.АутентификацияКриптоПроCSP.OKButton.click()
+    # subprocess.run(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
+    # return
 
 
 if __name__ == '__main__':
     l = input('Введите логин для устройства: ')
     p = input('Введите пароль для устройства: ')
     pin = input('Введите пин для ключей: ')
-    app = pywinauto.Application().Start(r'C:\DKCL\dkcl64.exe')
+    app = pywinauto.Application().start(r'C:\DKCL\dkcl64.exe')
     subprocess.Popen(f"C:\DKCL\dkcl64.exe -t \"STOP USING ALL\"")
     user_read()

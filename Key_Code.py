@@ -167,7 +167,6 @@ def jacarta_address(f, l, p):
 def write_final_file(a, b, fk):
     if fk == '2':
         # final = open(f"c:\DKCL\\Final_file_fqcn.txt", "a", encoding="cp1251")
-        print(b)
         with open(f"c:\DKCL\\Final_file_fqcn.txt", "a", encoding="cp1251") as final:
             for i in b:
                 # a = f'{a} - {b}\n'  # Выделение только адреса ключа
