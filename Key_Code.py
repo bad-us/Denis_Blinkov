@@ -110,25 +110,49 @@ def fqcn_address(f, l, p):
     cmd = "C:\Program Files\Crypto Pro\CSP\csptest.exe -keyset -enum_cont -verifycontext -fqcn -machinekeys"
     returned_output = subprocess.check_output(cmd)
     b = returned_output.decode("cp866")
-
+    print(b)
     start = -1
     count = 0
+    count_all = b.count("Aladdin R.D. JaCarta")
+    # print(count)
 
     while True:
         start = b.find("Aladdin R.D. JaCarta", start + 1)
+        # print(b)
         if start == -1:
             break
         count += 1
 
-    b = b.split('Aladdin R.D. JaCarta 0\\')
 
-    i = 1
-    d = []
-    while i <= count:
-        c = b[i]
-        c = c.split('\n')
-        d.append(c[0])
-        i += 1
+    # Проход по ключам
+    if count_all == 1:
+        b = b.split('Aladdin R.D. JaCarta 0')
+        i = 1
+        d = []
+        while i <= count:
+            c = b[i]
+            c = c.split('\n')
+            d.append(c[0])
+            i += 1
+    else:
+        b = b.split('Aladdin R.D. JaCarta 0')
+        i = 1
+        d = []
+        while i <= count_all:
+            c = b[i]
+            c = c.split('\n')
+            d.append(c[0])
+            i += 1
+
+
+
+    # i = 1
+    # d = []
+    # while i <= count:
+    #     c = b[i]
+    #     c = c.split('\n')
+    #     d.append(c[0])
+    #     i += 1
 
     # b = b.split(' ')
     # b = b[14]
